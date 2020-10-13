@@ -234,7 +234,7 @@ func TestCalculateRewardsMultiDelegator(t *testing.T) {
 	app.DistrKeeper.AllocateTokensToValidator(ctx, val, tokens)
 
 	// second delegation
-	tstaking.Delegate(t, sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
+	tstaking.Delegate(sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
 	del2 := app.StakingKeeper.Delegation(ctx, sdk.AccAddress(valAddrs[1]), valAddrs[0])
 
 	// fetch updated validator
@@ -441,7 +441,7 @@ func TestCalculateRewardsMultiDelegatorMultiSlash(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 3)
 
 	// second delegation
-	tstaking.DelegateWithPower(t, sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
+	tstaking.DelegateWithPower(sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
 
 	del2 := app.StakingKeeper.Delegation(ctx, sdk.AccAddress(valAddrs[1]), valAddrs[0])
 
@@ -519,7 +519,7 @@ func TestCalculateRewardsMultiDelegatorMultWithdraw(t *testing.T) {
 	require.Equal(t, uint64(2), app.DistrKeeper.GetValidatorHistoricalReferenceCount(ctx))
 
 	// second delegation
-	tstaking.Delegate(t, sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
+	tstaking.Delegate(sdk.AccAddress(valAddrs[1]), valAddrs[0], 100)
 
 	// historical count should be 3 (second delegation init)
 	require.Equal(t, uint64(3), app.DistrKeeper.GetValidatorHistoricalReferenceCount(ctx))

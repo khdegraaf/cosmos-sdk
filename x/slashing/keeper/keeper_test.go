@@ -40,24 +40,24 @@ func TestUnJailNotBonded(t *testing.T) {
 	// create a 6th validator with less power than the cliff validator (won't be bonded)
 	addr, val := valAddrs[5], pks[5]
 	amt := sdk.TokensFromConsensusPower(50)
-	msg := tstaking.CreateValidatorMsg(t, addr, val, amt.Int64())
+	msg := tstaking.CreateValidatorMsg(addr, val, amt.Int64())
 	msg.MinSelfDelegation = amt
-	tstaking.Handle(t, msg, true)
+	tstaking.Handle(msg, true)
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
-	tstaking.CheckValidator(t, addr, stakingtypes.BondStatusUnbonded, false)
+	tstaking.CheckValidator(addr, stakingtypes.BondStatusUnbonded, false)
 
 	// unbond below minimum self-delegation
 	require.Equal(t, p.BondDenom, tstaking.Denom)
-	tstaking.Undelegate(t, sdk.AccAddress(addr), addr, sdk.TokensFromConsensusPower(1), true)
+	tstaking.Undelegate(sdk.AccAddress(addr), addr, sdk.TokensFromConsensusPower(1), true)
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
 	// verify that validator is jailed
-	tstaking.CheckValidator(t, addr, "", true)
+	tstaking.CheckValidator(addr, "", true)
 
 	// verify we cannot unjail (yet)
 	require.Error(t, app.SlashingKeeper.Unjail(ctx, addr))
@@ -65,7 +65,7 @@ func TestUnJailNotBonded(t *testing.T) {
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 	// bond to meet minimum self-delegation
-	tstaking.DelegateWithPower(t, sdk.AccAddress(addr), addr, 1)
+	tstaking.DelegateWithPower(sdk.AccAddress(addr), addr, 1)
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
@@ -73,9 +73,7 @@ func TestUnJailNotBonded(t *testing.T) {
 	// verify we can immediately unjail
 	require.NoError(t, app.SlashingKeeper.Unjail(ctx, addr))
 
-	validator, ok = app.StakingKeeper.GetValidator(ctx, addr)
-	require.True(t, ok)
-	require.False(t, validator.Jailed)
+	tstaking.CheckValidator(addr, "", false)
 }
 
 // Test a new validator entering the validator set
@@ -219,7 +217,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 	ctx = ctx.WithBlockHeight(height)
 
 	// validator added back in
-	tstaking.DelegateWithPower(t, sdk.AccAddress(pks[2].Address()), sdk.ValAddress(pks[0].Address()), 50)
+	tstaking.DelegateWithPower(sdk.AccAddress(pks[2].Address()), sdk.ValAddress(pks[0].Address()), 50)
 
 	validatorUpdates = staking.EndBlocker(ctx, app.StakingKeeper)
 	require.Equal(t, 2, len(validatorUpdates))
