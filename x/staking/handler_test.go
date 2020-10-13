@@ -46,7 +46,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	initPower := int64(1000000)
 	app, ctx, _, valAddrs := bootstrapHandlerGenesisTest(t, initPower, 10, 10000000000000)
 	validatorAddr, validatorAddr3 := valAddrs[0], valAddrs[1]
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// create validator
 	initBond := tstaking.CreateValidatorWithValPower(t, validatorAddr, PKs[0], initPower, true)
@@ -124,7 +124,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 
 	addr1, addr2 := valAddrs[0], valAddrs[1]
 	pk1, pk2 := PKs[0], PKs[1]
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	valTokens := tstaking.CreateValidatorWithValPower(t, addr1, pk1, 10, true)
 	app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -170,7 +170,7 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 
 	addr := valAddrs[0]
 	invalidPk := secp256k1.GenPrivKey().PubKey()
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// invalid pukKey type should not be allowed
 	tstaking.CreateValidator(t, addr, invalidPk, 10, false)
@@ -179,7 +179,7 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 func TestLegacyValidatorDelegations(t *testing.T) {
 	app, ctx, delAddrs, valAddrs := bootstrapHandlerGenesisTest(t, 1000, 2, 100000000)
 
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 	valAddr := valAddrs[0]
 	valConsPubKey, valConsAddr := PKs[0], sdk.ConsAddress(PKs[0].Address())
 	delAddr := delAddrs[1]
@@ -266,7 +266,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 
 	params := app.StakingKeeper.GetParams(ctx)
 	validatorAddr, delegatorAddr := valAddrs[0], delAddrs[1]
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// first create validator
 	bondAmount := tstaking.CreateValidatorWithValPower(t, validatorAddr, PKs[0], 10, true)
@@ -330,7 +330,7 @@ func TestEditValidatorDecreaseMinSelfDelegation(t *testing.T) {
 	app, ctx, _, valAddrs := bootstrapHandlerGenesisTest(t, initPower, 1, 1000000000)
 
 	validatorAddr := valAddrs[0]
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// create validator
 	msgCreateValidator := tstaking.CreateValidatorMsg(t, validatorAddr, PKs[0], initBond.Int64())
@@ -360,7 +360,7 @@ func TestEditValidatorIncreaseMinSelfDelegationBeyondCurrentBond(t *testing.T) {
 
 	app, ctx, _, valAddrs := bootstrapHandlerGenesisTest(t, initPower, 2, 1000000000)
 	validatorAddr := valAddrs[0]
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// create validator
 	msgCreateValidator := tstaking.CreateValidatorMsg(t, validatorAddr, PKs[0], initBond.Int64())
@@ -388,7 +388,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 	initPower := int64(1000)
 
 	app, ctx, delAddrs, valAddrs := bootstrapHandlerGenesisTest(t, initPower, 2, 1000000000)
-	tstaking := teststaking.NewService(ctx, app.StakingKeeper)
+	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 	params := app.StakingKeeper.GetParams(ctx)
 	denom := params.BondDenom
 

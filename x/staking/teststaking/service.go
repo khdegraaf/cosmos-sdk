@@ -15,6 +15,7 @@ import (
 // Service is a structure which wraps the staking handler
 // and provides methods useful in tests
 type Service struct {
+	t *testing.T
 	h sdk.Handler
 	k keeper.Keeper
 
@@ -25,8 +26,8 @@ type Service struct {
 }
 
 // NewService creates staking Handler wrapper for tests
-func NewService(ctx sdk.Context, k keeper.Keeper) *Service {
-	return &Service{staking.NewHandler(k), k, ctx, ZeroCommission(), sdk.DefaultBondDenom}
+func NewService(t *testing.T, ctx sdk.Context, k keeper.Keeper) *Service {
+	return &Service{t, staking.NewHandler(k), k, ctx, ZeroCommission(), sdk.DefaultBondDenom}
 }
 
 // CreateValidator calls handler to create a new staking validator
