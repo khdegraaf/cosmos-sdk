@@ -31,7 +31,7 @@ func TestUnJailNotBonded(t *testing.T) {
 	// create max (5) validators all with the same power
 	for i := uint32(0); i < p.MaxValidators; i++ {
 		addr, val := valAddrs[i], pks[i]
-		tstaking.CreateValidatorWithValPower(t, addr, val, 100, true)
+		tstaking.CreateValidatorWithValPower(addr, val, 100, true)
 	}
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
@@ -93,7 +93,7 @@ func TestHandleNewValidator(t *testing.T) {
 	ctx = ctx.WithBlockHeight(app.SlashingKeeper.SignedBlocksWindow(ctx) + 1)
 
 	// Validator created
-	amt := tstaking.CreateValidatorWithValPower(t, addr, val, 100, true)
+	amt := tstaking.CreateValidatorWithValPower(addr, val, 100, true)
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	require.Equal(
@@ -136,7 +136,7 @@ func TestHandleAlreadyJailed(t *testing.T) {
 	power := int64(100)
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
-	amt := tstaking.CreateValidatorWithValPower(t, addr, val, power, true)
+	amt := tstaking.CreateValidatorWithValPower(addr, val, power, true)
 
 	staking.EndBlocker(ctx, app.StakingKeeper)
 
@@ -196,7 +196,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 	consAddr := sdk.ConsAddress(addr)
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
-	tstaking.CreateValidatorWithValPower(t, sdk.ValAddress(addr), val, power, true)
+	tstaking.CreateValidatorWithValPower(sdk.ValAddress(addr), val, power, true)
 	staking.EndBlocker(ctx, app.StakingKeeper)
 
 	// 100 first blocks OK
@@ -207,7 +207,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 	}
 
 	// kick first validator out of validator set
-	tstaking.CreateValidatorWithValPower(t, sdk.ValAddress(pks[1].Address()), pks[1], 101, true)
+	tstaking.CreateValidatorWithValPower(sdk.ValAddress(pks[1].Address()), pks[1], 101, true)
 
 	validatorUpdates := staking.EndBlocker(ctx, app.StakingKeeper)
 	require.Equal(t, 2, len(validatorUpdates))

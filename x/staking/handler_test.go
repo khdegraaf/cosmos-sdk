@@ -49,7 +49,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// create validator
-	initBond := tstaking.CreateValidatorWithValPower(t, validatorAddr, PKs[0], initPower, true)
+	initBond := tstaking.CreateValidatorWithValPower(validatorAddr, PKs[0], initPower, true)
 
 	// must end-block
 	updates := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -68,7 +68,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	require.True(t, keeper.ValidatorByPowerIndexExists(ctx, app.StakingKeeper, power))
 
 	// create a second validator keep it bonded
-	tstaking.CreateValidatorWithValPower(t, validatorAddr3, PKs[2], initPower, true)
+	tstaking.CreateValidatorWithValPower(validatorAddr3, PKs[2], initPower, true)
 
 	// must end-block
 	updates = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -126,7 +126,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	pk1, pk2 := PKs[0], PKs[1]
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
-	valTokens := tstaking.CreateValidatorWithValPower(t, addr1, pk1, 10, true)
+	valTokens := tstaking.CreateValidatorWithValPower(addr1, pk1, 10, true)
 	app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 
 	validator, found := app.StakingKeeper.GetValidator(ctx, addr1)
@@ -139,13 +139,13 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	assert.Equal(t, types.Description{}, validator.Description)
 
 	// two validators can't have the same operator address
-	tstaking.CreateValidator(t, addr1, pk2, valTokens.Int64(), false)
+	tstaking.CreateValidator(addr1, pk2, valTokens.Int64(), false)
 
 	// two validators can't have the same pubkey
-	tstaking.CreateValidator(t, addr2, pk1, valTokens.Int64(), false)
+	tstaking.CreateValidator(addr2, pk1, valTokens.Int64(), false)
 
 	// must have different pubkey and operator
-	tstaking.CreateValidator(t, addr2, pk2, valTokens.Int64(), true)
+	tstaking.CreateValidator(addr2, pk2, valTokens.Int64(), true)
 
 	// must end-block
 	updates := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -173,7 +173,7 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// invalid pukKey type should not be allowed
-	tstaking.CreateValidator(t, addr, invalidPk, 10, false)
+	tstaking.CreateValidator(addr, invalidPk, 10, false)
 }
 
 func TestLegacyValidatorDelegations(t *testing.T) {
@@ -185,7 +185,7 @@ func TestLegacyValidatorDelegations(t *testing.T) {
 	delAddr := delAddrs[1]
 
 	// create validator
-	bondAmount := tstaking.CreateValidatorWithValPower(t, valAddr, valConsPubKey, 10, true)
+	bondAmount := tstaking.CreateValidatorWithValPower(valAddr, valConsPubKey, 10, true)
 
 	// must end-block
 	updates := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -269,7 +269,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
 
 	// first create validator
-	bondAmount := tstaking.CreateValidatorWithValPower(t, validatorAddr, PKs[0], 10, true)
+	bondAmount := tstaking.CreateValidatorWithValPower(validatorAddr, PKs[0], 10, true)
 
 	// apply TM updates
 	app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -394,7 +394,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 
 	// create validator, delegate
 	validatorAddr, delegatorAddr := valAddrs[0], delAddrs[1]
-	initBond := tstaking.CreateValidatorWithValPower(t, validatorAddr, PKs[0], initPower, true)
+	initBond := tstaking.CreateValidatorWithValPower(validatorAddr, PKs[0], initPower, true)
 
 	// initial balance
 	amt1 := app.BankKeeper.GetBalance(ctx, delegatorAddr, denom).Amount
