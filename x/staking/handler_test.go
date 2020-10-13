@@ -130,9 +130,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	valTokens := tstaking.CreateValidatorWithValPower(addr1, pk1, 10, true)
 	app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 
-	validator, found := app.StakingKeeper.GetValidator(ctx, addr1)
-	require.True(t, found)
-	assert.Equal(t, types.Bonded, validator.Status)
+	validator := tstaking.CheckValidator(addr1, types.Bonded, false)
 	assert.Equal(t, addr1.String(), validator.OperatorAddress)
 	assert.Equal(t, pk1.(cryptotypes.IntoTmPubKey).AsTmPubKey(), validator.GetConsPubKey())
 	assert.Equal(t, valTokens, validator.BondedTokens())
@@ -152,10 +150,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	updates := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.Equal(t, 1, len(updates))
 
-	validator, found = app.StakingKeeper.GetValidator(ctx, addr2)
-
-	require.True(t, found)
-	assert.Equal(t, types.Bonded, validator.Status)
+	validator = tstaking.CheckValidator(addr2, types.Bonded, false)
 	assert.Equal(t, addr2.String(), validator.OperatorAddress)
 	assert.Equal(t, pk2.(cryptotypes.IntoTmPubKey).AsTmPubKey(), validator.GetConsPubKey())
 	assert.True(sdk.IntEq(t, valTokens, validator.Tokens))
@@ -193,9 +188,7 @@ func TestLegacyValidatorDelegations(t *testing.T) {
 	require.Equal(t, 1, len(updates))
 
 	// verify the validator exists and has the correct attributes
-	validator, found := app.StakingKeeper.GetValidator(ctx, valAddr)
-	require.True(t, found)
-	require.Equal(t, types.Bonded, validator.Status)
+	validator := tstaking.CheckValidator(valAddr, types.Bonded, false)
 	require.Equal(t, bondAmount, validator.DelegatorShares.RoundInt())
 	require.Equal(t, bondAmount, validator.BondedTokens())
 
@@ -203,8 +196,7 @@ func TestLegacyValidatorDelegations(t *testing.T) {
 	tstaking.Delegate(delAddr, valAddr, bondAmount.Int64())
 
 	// verify validator bonded shares
-	validator, found = app.StakingKeeper.GetValidator(ctx, valAddr)
-	require.True(t, found)
+	validator = tstaking.CheckValidator(valAddr, types.Bonded, false)
 	require.Equal(t, bondAmount.MulRaw(2), validator.DelegatorShares.RoundInt())
 	require.Equal(t, bondAmount.MulRaw(2), validator.BondedTokens())
 
@@ -222,9 +214,7 @@ func TestLegacyValidatorDelegations(t *testing.T) {
 	staking.EndBlocker(ctx, app.StakingKeeper)
 
 	// verify the validator record still exists, is jailed, and has correct tokens
-	validator, found = app.StakingKeeper.GetValidator(ctx, valAddr)
-	require.True(t, found)
-	require.True(t, validator.Jailed)
+	validator = tstaking.CheckValidator(valAddr, -1, true)
 	require.Equal(t, bondAmount, validator.Tokens)
 
 	// verify delegation still exists
@@ -276,14 +266,11 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 	// apply TM updates
 	app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 
-	validator, found := app.StakingKeeper.GetValidator(ctx, validatorAddr)
-	require.True(t, found)
-	require.Equal(t, types.Bonded, validator.Status)
+	validator := tstaking.CheckValidator(validatorAddr, types.Bonded, false)
 	require.Equal(t, bondAmount, validator.DelegatorShares.RoundInt())
 	require.Equal(t, bondAmount, validator.BondedTokens(), "validator: %v", validator)
 
-	_, found = app.StakingKeeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
-	require.False(t, found)
+	tstaking.CheckDelegator(delegatorAddr, validatorAddr)
 
 	bond, found := app.StakingKeeper.GetDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
 	require.True(t, found)

@@ -193,8 +193,9 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 	addr, val := pks[0].Address(), pks[0]
 	consAddr := sdk.ConsAddress(addr)
 	tstaking := teststaking.NewService(t, ctx, app.StakingKeeper)
+	valAddr := sdk.ValAddress(addr)
 
-	tstaking.CreateValidatorWithValPower(sdk.ValAddress(addr), val, power, true)
+	tstaking.CreateValidatorWithValPower(valAddr, val, power, true)
 	staking.EndBlocker(ctx, app.StakingKeeper)
 
 	// 100 first blocks OK
@@ -206,11 +207,9 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 
 	// kick first validator out of validator set
 	tstaking.CreateValidatorWithValPower(sdk.ValAddress(pks[1].Address()), pks[1], 101, true)
-
 	validatorUpdates := staking.EndBlocker(ctx, app.StakingKeeper)
 	require.Equal(t, 2, len(validatorUpdates))
-	validator, _ := app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Unbonding, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Unbonding, false)
 
 	// 600 more blocks happened
 	height = int64(700)
@@ -221,8 +220,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 
 	validatorUpdates = staking.EndBlocker(ctx, app.StakingKeeper)
 	require.Equal(t, 2, len(validatorUpdates))
-	validator, _ = app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Bonded, false)
 	newPower := int64(150)
 
 	// validator misses a block
@@ -230,8 +228,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 	height++
 
 	// shouldn't be jailed/kicked yet
-	validator, _ = app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Bonded, false)
 
 	// validator misses 500 more blocks, 501 total
 	latest := height
@@ -242,8 +239,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 
 	// should now be jailed & kicked
 	staking.EndBlocker(ctx, app.StakingKeeper)
-	validator, _ = app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Unbonding, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Unbonding, true)
 
 	// check all the signing information
 	signInfo, found := app.SlashingKeeper.GetValidatorSigningInfo(ctx, consAddr)
@@ -267,8 +263,7 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 
 	// validator should not be kicked since we reset counter/array when it was jailed
 	staking.EndBlocker(ctx, app.StakingKeeper)
-	validator, _ = app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Bonded, false)
 
 	// validator misses 501 blocks
 	latest = height
@@ -279,6 +274,5 @@ func TestValidatorDippingInAndOut(t *testing.T) {
 
 	// validator should now be jailed & kicked
 	staking.EndBlocker(ctx, app.StakingKeeper)
-	validator, _ = app.StakingKeeper.GetValidator(ctx, sdk.ValAddress(addr))
-	require.Equal(t, stakingtypes.Unbonding, validator.Status)
+	tstaking.CheckValidator(valAddr, stakingtypes.Bonded, true)
 }

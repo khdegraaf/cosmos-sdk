@@ -96,13 +96,14 @@ func (sh *Service) Handle(msg sdk.Msg, ok bool) *sdk.Result {
 
 // CheckValidator asserts that a validor exists and has a given status (if status!="")
 // and if has a right jailed flag.
-func (sh *Service) CheckValidator(addr sdk.ValAddress, status string, jailed bool) {
-	validator, ok := sh.k.GetValidator(sh.Ctx, addr)
+func (sh *Service) CheckValidator(addr sdk.ValAddress, status stakingtypes.BondStatus, jailed bool) stakingtypes.Validator {
+	v, ok := sh.k.GetValidator(sh.Ctx, addr)
 	require.True(sh.t, ok)
-	require.Equal(sh.t, jailed, validator.Jailed, "wrong Jalied status")
-	if status != "" {
-		require.Equal(sh.t, status, validator.Status.String())
+	require.Equal(sh.t, jailed, v.Jailed, "wrong Jalied status")
+	if status >= 0 {
+		require.Equal(sh.t, status, v.Status)
 	}
+	return v
 }
 
 // CheckDelegator asserts that a delegator exists
