@@ -16,6 +16,7 @@ import (
 // and provides methods useful in tests
 type Service struct {
 	h sdk.Handler
+	k keeper.Keeper
 
 	Ctx        sdk.Context
 	Commission stakingtypes.CommissionRates
@@ -25,7 +26,7 @@ type Service struct {
 
 // NewService creates staking Handler wrapper for tests
 func NewService(ctx sdk.Context, k keeper.Keeper) *Service {
-	return &Service{staking.NewHandler(k), ctx, ZeroCommission(), sdk.DefaultBondDenom}
+	return &Service{staking.NewHandler(k), k, ctx, ZeroCommission(), sdk.DefaultBondDenom}
 }
 
 // CreateValidator calls handler to create a new staking validator
@@ -58,16 +59,16 @@ func (sh *Service) createValidator(t *testing.T, addr sdk.ValAddress, pk crypto.
 }
 
 // Delegate calls handler to delegate stake for a validator
-func (sh *Service) Delegate(t *testing.T, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount int64) {
+func (sh *Service) Delegate(t *testing.T, delegator sdk.AccAddress, val sdk.ValAddress, amount int64) {
 	coin := sdk.NewCoin(sh.Denom, sdk.NewInt(amount))
-	msg := stakingtypes.NewMsgDelegate(delAddr, valAddr, coin)
+	msg := stakingtypes.NewMsgDelegate(delegator, val, coin)
 	sh.Handle(t, msg, true)
 }
 
 // DelegateWithPower calls handler to delegate stake for a validator
-func (sh *Service) DelegateWithPower(t *testing.T, delAddr sdk.AccAddress, valAddr sdk.ValAddress, power int64) {
+func (sh *Service) DelegateWithPower(t *testing.T, delegator sdk.AccAddress, val sdk.ValAddress, power int64) {
 	coin := sdk.NewCoin(sh.Denom, sdk.TokensFromConsensusPower(power))
-	msg := stakingtypes.NewMsgDelegate(delAddr, valAddr, coin)
+	msg := stakingtypes.NewMsgDelegate(delegator, val, coin)
 	sh.Handle(t, msg, true)
 }
 
@@ -89,6 +90,17 @@ func (sh *Service) Handle(t *testing.T, msg sdk.Msg, ok bool) *sdk.Result {
 		require.Nil(t, res)
 	}
 	return res
+}
+
+// CheckValidator asserts that a validor exists and has a given status (if status!="") and
+// if has a right jailed flag.
+func (sh *Service) CheckValidator(t *testing.T, addr sdk.ValAddress, status string, jailed bool) {
+	validator, ok := sh.k.GetValidator(sh.ctx, addr)
+	require.True(t, ok)
+	require.Equal(t, jailed, validator.Jailed, "wrong Jalied status")
+	if status != "" {
+		require.Equal(t, status, validator.GetStatus().String())
+	}
 }
 
 // ZeroCommission constructs a commission rates with all zeros.

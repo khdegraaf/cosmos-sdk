@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 func TestUnJailNotBonded(t *testing.T) {
@@ -46,10 +47,7 @@ func TestUnJailNotBonded(t *testing.T) {
 	staking.EndBlocker(ctx, app.StakingKeeper)
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
-	validator, ok := app.StakingKeeper.GetValidator(ctx, addr)
-	require.True(t, ok)
-	require.False(t, validator.Jailed)
-	require.Equal(t, stakingtypes.BondStatusUnbonded, validator.GetStatus().String())
+	tstaking.CheckValidator(t, addr, stakingtypes.BondStatusUnbonded, false)
 
 	// unbond below minimum self-delegation
 	require.Equal(t, p.BondDenom, tstaking.Denom)
@@ -59,9 +57,7 @@ func TestUnJailNotBonded(t *testing.T) {
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
 
 	// verify that validator is jailed
-	validator, ok = app.StakingKeeper.GetValidator(ctx, addr)
-	require.True(t, ok)
-	require.True(t, validator.Jailed)
+	tstaking.CheckValidator(t, addr, "", true)
 
 	// verify we cannot unjail (yet)
 	require.Error(t, app.SlashingKeeper.Unjail(ctx, addr))
